@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECON 3430 — Attendance</title>
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --surface:#FFFFFF;
+    --ink:#1C1C1E;
+    --ink-soft:#5B6478;
+    --navy:#232D4B;
+    --navy-soft:#3D4A70;
+    --line:#E4E1D8;
+    --line-strong:#CFCABE;
+    --today:#F4EDE1;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    padding-bottom:18px;
+    border-bottom:1px solid var(--line-strong);
+    margin-bottom:22px;
+  }
+  h1{
+    font-family:Georgia,"Source Serif 4","Iowan Old Style",serif;
+    font-weight:400;
+    font-size:28px;
+    letter-spacing:0.2px;
+    margin:0 0 4px;
+    color:var(--navy);
+  }
+  .sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .meta{
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:right;
+    line-height:1.5;
+  }
+  .meta strong{color:var(--ink);}
+
+  /* ---------- Section tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tab{
+    appearance:none;
+    border:1px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--ink-soft);
+    font-size:14px;
+    font-family:inherit;
+    padding:10px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .tab:hover{border-color:var(--navy-soft);}
+  .tab.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+  .tab .count{
+    opacity:.7;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .toolbar .status{
+    font-size:13px;
+    color:var(--ink-soft);
+    min-height:18px;
+  }
+  .btn-ghost{
+    appearance:none;
+    border:1px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--navy);
+    font-size:13px;
+    font-family:inherit;
+    padding:7px 14px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .btn-ghost:hover{background:var(--today);}
+
+  /* ---------- Table ---------- */
+  .table-shell{
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    overflow:auto;
+    max-height:72vh;
+    background:var(--surface);
+  }
+  table{
+    border-collapse:separate;
+    border-spacing:0;
+    width:100%;
+    font-size:13.5px;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--navy);
+    color:#fff;
+    z-index:2;
+    font-weight:500;
+    padding:10px 8px;
+    text-align:center;
+    white-space:nowrap;
+    border-bottom:1px solid var(--navy);
+  }
+  thead th.date-head{
+    cursor:pointer;
+    user-select:none;
+  }
+  thead th.date-head:hover{background:var(--navy-soft);}
+  thead th.date-head .dow{
+    display:block;
+    font-size:10px;
+    opacity:.75;
+    font-weight:400;
+  }
+  thead th.name-head{
+    text-align:left;
+    left:0;
+    z-index:3;
+    padding-left:16px;
+  }
+  thead th.total-head{
+    right:0;
+    z-index:4;
+    box-shadow:-1px 0 0 var(--line-strong);
+  }
+  thead th.today-col{background:#3E4E82;}
+
+  tbody td{
+    padding:8px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+  tbody tr:nth-child(even) td{background:#FDFCFA;}
+  tbody tr:hover td{background:var(--today);}
+
+  td.name-cell{
+    text-align:left;
+    position:sticky;
+    left:0;
+    background:inherit;
+    background-color:var(--surface);
+    font-weight:500;
+    white-space:nowrap;
+    padding-left:16px;
+    border-right:1px solid var(--line-strong);
+    z-index:1;
+  }
+  tbody tr:nth-child(even) td.name-cell{background-color:#FDFCFA;}
+  tbody tr:hover td.name-cell{background-color:var(--today);}
+
+  td.today-col{background-color:#FBF6EC !important;}
+
+  td.total-cell{
+    font-variant-numeric:tabular-nums;
+    color:var(--ink-soft);
+    position:sticky;
+    right:0;
+    z-index:1;
+    background-color:var(--surface);
+    box-shadow:-1px 0 0 var(--line-strong);
+  }
+  tbody tr:nth-child(even) td.total-cell{background-color:#FDFCFA;}
+  tbody tr:hover td.total-cell{background-color:var(--today);}
+
+  input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    accent-color:var(--navy);
+    cursor:pointer;
+    vertical-align:middle;
+  }
+  thead input[type="checkbox"]{
+    accent-color:#fff;
+  }
+
+  footer{
+    margin-top:16px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+
+  @media (max-width:640px){
+    h1{font-size:22px;}
+    .meta{text-align:left;}
+    header{align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>ECON 3430 — Attendance</h1>
+      <p class="sub">Economics of Sustainability and the Environment · Discussion sections</p>
+    </div>
+    <div class="meta" id="metaBox">Loading…</div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="toolbar">
+    <button class="btn-ghost" id="exportBtn">Export CSV</button>
+    <span class="status" id="statusText"></span>
+  </div>
+
+  <div class="table-shell">
+    <table id="attendanceTable">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="bodyRows"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Click a date header's checkbox to mark everyone present that day. Changes save in this browser
+    automatically — on this device only, so use the same browser each week (Export CSV is your
+    portable backup). Section assignment (which CRN is 102 vs. 103) is my best guess from
+    registration numbers — swap the labels below if I've got it backwards.
+  </footer>
+
+</div>
+
+<script>
+/* ---------------- Data ---------------- */
+const SECTIONS = {
+  "102": {
+    label: "Section 102",
+    time: "6:00 – 7:00 PM",
+    key: "attendance-102",
+    students: [{"first":"Aiden","last":"Altamura"},{"first":"Marcus","last":"Bamber"},{"first":"Amanda","last":"Bilchick"},{"first":"Aarush","last":"Bojja"},{"first":"Raegan","last":"Boyd"},{"first":"Robert","last":"Brown"},{"first":"Christian","last":"Casale"},{"first":"Samuel","last":"Choe"},{"first":"Jackson","last":"Coppock"},{"first":"Benjamin","last":"D'Amico"},{"first":"Benjamin","last":"Davis"},{"first":"Vedansh","last":"Garg"},{"first":"Christine","last":"Gillen"},{"first":"Kari","last":"Hessabian"},{"first":"Eva","last":"Lareau"},{"first":"Lucy","last":"Lusk"},{"first":"William","last":"Mason"},{"first":"Aaron","last":"McPheeters"},{"first":"Mike","last":"Meares"},{"first":"Gibum","last":"Na"},{"first":"Colin","last":"Ostrowski"},{"first":"Liam","last":"Park"},{"first":"Matthew","last":"Sabatino"},{"first":"Elizabeth","last":"Scheid"},{"first":"Sofia","last":"Tran"},{"first":"Henry","last":"Wheeler"},{"first":"Camden","last":"Young"},{"first":"Shunmei","last":"Zheng"}]
+  },
+  "103": {
+    label: "Section 103",
+    time: "7:00 – 8:00 PM",
+    key: "attendance-103",
+    students: [{"first":"Bethel","last":"Abraham"},{"first":"Fenan","last":"Abraham"},{"first":"Alexander","last":"Capet"},{"first":"Conall","last":"Castagno"},{"first":"Neha","last":"Dinesh"},{"first":"Alaire","last":"Dominguez"},{"first":"Alexander","last":"Drela"},{"first":"Spicer","last":"Edmonds"},{"first":"Kimberly","last":"Egoavil"},{"first":"Bennett","last":"Galper"},{"first":"Hayden","last":"Jarit"},{"first":"Chloe","last":"Kaczmarek"},{"first":"Natalie","last":"Kaldahl"},{"first":"Kayla","last":"Kline-polio"},{"first":"Cienna","last":"Ortiz"},{"first":"Audrey","last":"Peters"},{"first":"Spencer","last":"Ratliff"},{"first":"Aidan","last":"Rhyu"},{"first":"Jamie","last":"Romero-Lucero"},{"first":"Paige","last":"Rouse"},{"first":"Kaden","last":"Roy"},{"first":"Matthew","last":"Ryeom"},{"first":"Arthur","last":"Schillewaert"},{"first":"Le Nam","last":"Trinh"},{"first":"Emma","last":"Ward"},{"first":"Caroline","last":"West"}]
+  }
+};
+
+const DATES = ["2026-09-02","2026-09-09","2026-09-16","2026-09-23","2026-09-30",
+               "2026-10-07","2026-10-14","2026-10-21","2026-10-28",
+               "2026-11-04","2026-11-11","2026-11-18","2026-11-25","2026-12-02"];
+
+const TODAY = new Date().toISOString().slice(0,10);
+// nearest session on/after today, for a gentle "you are here" highlight
+const UPCOMING = DATES.find(d => d >= TODAY) || null;
+
+function fmtDate(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+function studentKey(s){ return s.last + ', ' + s.first; }
+
+/* ---------------- State ---------------- */
+let currentSection = "102";
+let grids = {}; // sectionId -> { "Last, First": { "2026-09-02": true, ... } }
+let saveTimer = null;
+
+async function loadSection(id){
+  const statusEl = document.getElementById('statusText');
+  try{
+    const raw = localStorage.getItem(SECTIONS[id].key);
+    grids[id] = raw ? JSON.parse(raw) : {};
+  }catch(e){
+    grids[id] = {};
+    statusEl.textContent = 'Your browser is blocking local storage (private/incognito mode can do this) — checks won\'t be saved.';
+  }
+}
+
+function scheduleSave(id){
+  const statusEl = document.getElementById('statusText');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try{
+      localStorage.setItem(SECTIONS[id].key, JSON.stringify(grids[id]));
+      statusEl.textContent = 'Saved on this device';
+      setTimeout(()=>{ if(statusEl.textContent==='Saved on this device') statusEl.textContent=''; }, 1500);
+    }catch(e){
+      statusEl.textContent = 'Could not save — storage may be full or blocked by your browser.';
+    }
+  }, 200);
+}
+
+function isChecked(id, key, date){
+  return !!(grids[id][key] && grids[id][key][date]);
+}
+function setChecked(id, key, date, val){
+  if(!grids[id][key]) grids[id][key] = {};
+  grids[id][key][date] = val;
+}
+function rowTotal(id, key){
+  const row = grids[id][key] || {};
+  return DATES.reduce((n,d)=> n + (row[d] ? 1 : 0), 0);
+}
+function colTotal(id, date){
+  return SECTIONS[id].students.reduce((n,s)=> n + (isChecked(id, studentKey(s), date) ? 1 : 0), 0);
+}
+
+/* ---------------- Render ---------------- */
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  Object.keys(SECTIONS).forEach(id=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (id===currentSection ? ' active' : '');
+    btn.innerHTML = `${SECTIONS[id].label} <span class="count">· ${SECTIONS[id].time} · ${SECTIONS[id].students.length}</span>`;
+    btn.addEventListener('click', ()=>{
+      currentSection = id;
+      renderTabs();
+      renderTable();
+    });
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderMeta(){
+  document.getElementById('metaBox').innerHTML =
+    `<strong>${DATES.length}</strong> Wednesday sessions &nbsp;·&nbsp; Sep 2 – Dec 2, 2026`;
+}
+
+function renderTable(){
+  const id = currentSection;
+  const headRow = document.getElementById('headRow');
+  const bodyRows = document.getElementById('bodyRows');
+  headRow.innerHTML = '';
+  bodyRows.innerHTML = '';
+
+  const thName = document.createElement('th');
+  thName.className = 'name-head';
+  thName.textContent = 'Student';
+  headRow.appendChild(thName);
+
+  DATES.forEach(date=>{
+    const th = document.createElement('th');
+    th.className = 'date-head' + (date===UPCOMING ? ' today-col' : '');
+    th.title = 'Click to toggle everyone present on ' + fmtDate(date);
+    const dow = document.createElement('span');
+    dow.className = 'dow';
+    dow.textContent = 'Wed';
+    const label = document.createElement('span');
+    label.textContent = fmtDate(date);
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.setAttribute('aria-label', 'Mark all present ' + fmtDate(date));
+    cb.style.display = 'block';
+    cb.style.margin = '4px auto 0';
+    const allChecked = SECTIONS[id].students.every(s=> isChecked(id, studentKey(s), date));
+    cb.checked = allChecked && SECTIONS[id].students.length>0;
+    cb.addEventListener('click', (e)=> e.stopPropagation());
+    cb.addEventListener('change', ()=>{
+      SECTIONS[id].students.forEach(s=> setChecked(id, studentKey(s), date, cb.checked));
+      scheduleSave(id);
+      renderTable();
+    });
+    th.appendChild(dow);
+    th.appendChild(label);
+    th.appendChild(cb);
+    headRow.appendChild(th);
+  });
+
+  const thTotal = document.createElement('th');
+  thTotal.className = 'total-head';
+  thTotal.textContent = 'Total';
+  headRow.appendChild(thTotal);
+
+  SECTIONS[id].students.forEach(s=>{
+    const key = studentKey(s);
+    const tr = document.createElement('tr');
+
+    const tdName = document.createElement('td');
+    tdName.className = 'name-cell';
+    tdName.textContent = `${s.last}, ${s.first}`;
+    tr.appendChild(tdName);
+
+    DATES.forEach(date=>{
+      const td = document.createElement('td');
+      if(date===UPCOMING) td.classList.add('today-col');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.setAttribute('aria-label', `${s.first} ${s.last} present ${fmtDate(date)}`);
+      cb.checked = isChecked(id, key, date);
+      cb.addEventListener('change', ()=>{
+        setChecked(id, key, date, cb.checked);
+        scheduleSave(id);
+        tdTotal.textContent = rowTotal(id, key);
+      });
+      td.appendChild(cb);
+      tr.appendChild(td);
+    });
+
+    const tdTotal = document.createElement('td');
+    tdTotal.className = 'total-cell';
+    tdTotal.textContent = rowTotal(id, key);
+    tr.appendChild(tdTotal);
+
+    bodyRows.appendChild(tr);
+  });
+}
+
+function exportCSV(){
+  const id = currentSection;
+  const rows = [['Last','First', ...DATES.map(fmtDate), 'Total']];
+  SECTIONS[id].students.forEach(s=>{
+    const key = studentKey(s);
+    const row = [s.last, s.first, ...DATES.map(d=> isChecked(id,key,d) ? '1':'0'), rowTotal(id,key)];
+    rows.push(row);
+  });
+  const csv = rows.map(r=> r.map(v=> `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `econ3430-attendance-${SECTIONS[id].label.replace(/\s+/g,'').toLowerCase()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- Init ---------------- */
+async function init(){
+  renderMeta();
+  renderTabs();
+  await Promise.all(Object.keys(SECTIONS).map(loadSection));
+  renderTable();
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+}
+init();
+</script>
+</body>
+</html>
